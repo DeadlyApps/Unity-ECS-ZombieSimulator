@@ -54,7 +54,11 @@ public class ZombieSimulatorBootstrap {
     {
         //Humans - Composition of the humans
 
-        HumanArchetype = entityManager.CreateArchetype(typeof(MoveSpeed), typeof(Heading2D), typeof(Position2D), typeof(TransformMatrix));
+        HumanArchetype = entityManager.CreateArchetype(typeof(Human),
+                                                        typeof(Heading2D),
+                                                        typeof(MoveSpeed),
+                                                        typeof(Position2D), 
+                                                        typeof(TransformMatrix));
 
     }
 
