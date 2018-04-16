@@ -2,5 +2,5 @@
 
 public struct Human : IComponentData
 {
-
+    public float TimeTillNextDirectionChange;
 }

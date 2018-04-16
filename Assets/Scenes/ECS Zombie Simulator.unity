@@ -213,6 +213,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a21cd627d80c4b4a9b41c1c1b4a3165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HumanSpeed: 3
+  HumanCount: 10000
+  Playfield:
+    serializedVersion: 2
+    x: -30
+    y: -30
+    width: 60
+    height: 60
 --- !u!4 &657261337
 Transform:
   m_ObjectHideFlags: 0
