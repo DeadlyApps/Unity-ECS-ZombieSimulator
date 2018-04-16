@@ -1,6 +1,9 @@
 ﻿using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Transforms;
 using Unity.Transforms2D;
+using UnityEngine;
 
 class HumanNavigationSystem : JobComponentSystem
 {
@@ -9,6 +12,7 @@ class HumanNavigationSystem : JobComponentSystem
         public int Length;
         public ComponentDataArray<Position2D> Position;
         public ComponentDataArray<Heading2D> Heading;
+        public ComponentDataArray<MoveSpeed> MoveSpeed;
         public ComponentDataArray<Human> Human;
     }
 
@@ -23,6 +27,11 @@ class HumanNavigationSystem : JobComponentSystem
             Heading2D heading2D = humanDatum.Heading[index];
             heading2D.Value = new Unity.Mathematics.float2(1f, 0f);
             humanDatum.Heading[index] = heading2D;
+
+            MoveSpeed moveSpeed = humanDatum.MoveSpeed[index];
+            moveSpeed.speed = index;
+            humanDatum.MoveSpeed[index] = moveSpeed;
+
         }
     }
 
@@ -35,4 +44,6 @@ class HumanNavigationSystem : JobComponentSystem
 
         return humanNavigationJob.Schedule(humanDatum.Length, 64, inputDeps);
     }
+
+
 }

@@ -36,18 +36,44 @@ public class ZombieSimulatorBootstrap {
 
     private static void NewGame()
     {
-
         var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+
+        for (int i = 0; i < Settings.HumanCount; i++)
+        {
+            CreateHuman(entityManager);
+        }
+    }
+
+    private static void CreateHuman(EntityManager entityManager)
+    {
         Entity firstHuman = entityManager.CreateEntity(HumanArchetype);
 
+        var randomSpawnLocation = ComputeSpawnLocation();
+
         // We can tweak a few components to make more sense like this.
-        entityManager.SetComponentData(firstHuman, new Position2D { Value = new float2(0.0f, 0.0f) });
+        entityManager.SetComponentData(firstHuman, new Position2D { Value = randomSpawnLocation });
         entityManager.SetComponentData(firstHuman, new Heading2D { Value = new float2(0.0f, 1.0f) });
         entityManager.SetComponentData(firstHuman, new MoveSpeed { speed = Settings.HumanSpeed });
 
         // Finally we add a shared component which dictates the rendered look
         entityManager.AddSharedComponentData(firstHuman, HumanLook);
+    }
 
+    private static float2 ComputeSpawnLocation()
+    {
+        var settings = ZombieSettings.Instance;
+
+        float r = Random.value;
+        float x0 = settings.Playfield.xMin;
+        float x1 = settings.Playfield.xMax;
+        float x = x0 + (x1 - x0) * r;
+
+        float r2 = Random.value;
+        float y0 = settings.Playfield.yMin;
+        float y1 = settings.Playfield.yMax;
+        float y = y0 + (y1 - y0) * r2;
+
+        return new float2(x, y);
     }
 
     private static void DefineArchetypes(EntityManager entityManager)
