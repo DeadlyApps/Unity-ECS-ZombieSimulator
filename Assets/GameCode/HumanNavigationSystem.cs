@@ -1,7 +1,8 @@
 ﻿using Unity.Entities;
+using Unity.Jobs;
 using Unity.Transforms2D;
 
-class HumanNavigationSystem : ComponentSystem
+class HumanNavigationSystem : JobComponentSystem
 {
     public struct HumanData
     {
@@ -13,13 +14,25 @@ class HumanNavigationSystem : ComponentSystem
 
     [Inject] private HumanData humanDatum;
 
-    protected override void OnUpdate()
+
+    struct HumanNavigationJob : IJobParallelFor
     {
-        for (int index = 0; index < humanDatum.Length; ++index)
+        public HumanData humanDatum;
+        public void Execute(int index)
         {
             Heading2D heading2D = humanDatum.Heading[index];
             heading2D.Value = new Unity.Mathematics.float2(1f, 0f);
             humanDatum.Heading[index] = heading2D;
         }
+    }
+
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
+    {
+        var humanNavigationJob = new HumanNavigationJob
+        {
+            humanDatum = humanDatum
+        };
+
+        return humanNavigationJob.Schedule(humanDatum.Length, 64, inputDeps);
     }
 }
