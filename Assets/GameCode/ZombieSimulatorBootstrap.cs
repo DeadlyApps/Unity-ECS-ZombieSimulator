@@ -56,13 +56,18 @@ public class ZombieSimulatorBootstrap
             var randomSpawnLocation = ComputeSpawnLocation();
 
             // We can tweak a few components to make more sense like this.
-            entityManager.SetComponentData(zombie, new Position2D { Value = randomSpawnLocation });
-            entityManager.SetComponentData(zombie, new Heading2D { Value = new float2(1.0f, 0.0f) });
-            entityManager.SetComponentData(zombie, new MoveSpeed { speed = Settings.HumanSpeed });
-
-            // Finally we add a shared component which dictates the rendered look
-            entityManager.AddSharedComponentData(zombie, ZombieLook);
+            InitializeZombie(entityManager, zombie, randomSpawnLocation);
         }
+    }
+
+    public static void InitializeZombie(EntityManager entityManager, Entity zombie, float2 position)
+    {
+        entityManager.SetComponentData(zombie, new Position2D { Value = position });
+        entityManager.SetComponentData(zombie, new Heading2D { Value = new float2(1.0f, 0.0f) });
+        entityManager.SetComponentData(zombie, new MoveSpeed { speed = Settings.HumanSpeed });
+
+        // Finally we add a shared component which dictates the rendered look
+        entityManager.AddSharedComponentData(zombie, ZombieLook);
     }
 
     private static void CreateHumans(EntityManager entityManager)

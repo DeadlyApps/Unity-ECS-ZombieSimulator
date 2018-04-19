@@ -5,30 +5,6 @@ using Unity.Mathematics;
 using Unity.Transforms2D;
 using UnityEngine;
 
-class HumanToZombieSystem : ComponentSystem
-{
-    struct HumansToConvertData
-    {
-        public int Length;
-        public ComponentDataArray<Human> Humans;
-        public EntityArray Entities;
-    }
-
-    [Inject] private HumansToConvertData humanData;
-
-    protected override void OnUpdate()
-    {
-        for (int i = 0; i < humanData.Length; i++)
-        {
-            Human human = humanData.Humans[i];
-            if (human.IsInfected == 1)
-            {
-                PostUpdateCommands.DestroyEntity(humanData.Entities[i]);
-            }
-        }
-    }
-}
-
 class HumanInfectionSystem : JobComponentSystem
 {
     [Inject] private HumanInfectionData humanData;
@@ -69,10 +45,9 @@ struct HumanInfectionJob : IJobParallelFor
 
             if (distSquared < infectionDistance)
             {
-                var human = humanData.Humans[i];
+                var human = humanData.Humans[index];
                 human.IsInfected = 1;
-                humanData.Humans[i] = human;
-
+                humanData.Humans[index] = human;
             }
 
         }
