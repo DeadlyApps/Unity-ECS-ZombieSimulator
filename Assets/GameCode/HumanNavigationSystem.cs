@@ -68,7 +68,7 @@ struct HumanNavigationJob : IJobParallelFor
 public struct HumanData
 {
     public int Length;
-    public ComponentDataArray<Position2D> Position;
+    public ComponentDataArray<Position2D> Positions;
     public ComponentDataArray<Heading2D> Heading;
     public ComponentDataArray<MoveSpeed> MoveSpeed;
     public ComponentDataArray<Human> Human;
