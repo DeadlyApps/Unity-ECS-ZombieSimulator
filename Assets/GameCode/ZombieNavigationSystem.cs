@@ -6,6 +6,7 @@ using Unity.Transforms;
 using Unity.Transforms2D;
 using UnityEngine;
 
+[UpdateAfter(typeof(HumanToZombieSystem))]
 class ZombieNavigationSystem : JobComponentSystem
 {
     [Inject] private ZombieData zombieDatum;

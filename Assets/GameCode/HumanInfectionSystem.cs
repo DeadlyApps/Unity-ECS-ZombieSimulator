@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using Unity.Transforms2D;
 using UnityEngine;
 
+[UpdateAfter(typeof(HumanToZombieSystem))]
 class HumanInfectionSystem : JobComponentSystem
 {
     [Inject] private HumanInfectionData humanData;

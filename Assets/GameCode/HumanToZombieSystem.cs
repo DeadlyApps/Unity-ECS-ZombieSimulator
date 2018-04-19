@@ -1,6 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using Unity.Transforms2D;
 
@@ -21,6 +22,7 @@ class HumanToZombieSystem : ComponentSystem
         for (int i = 0; i < humanData.Length; i++)
         {
             Human human = humanData.Humans[i];
+            
             if (human.IsInfected == 1)
             {
                 PostUpdateCommands.DestroyEntity(humanData.Entities[i]);
@@ -31,8 +33,11 @@ class HumanToZombieSystem : ComponentSystem
                 PostUpdateCommands.SetComponent(new MoveSpeed { speed = ZombieSettings.Instance.HumanSpeed });
 
                 // Finally we add a shared component which dictates the rendered look
+                //PostUpdateCommands.RemoveComponent<MeshInstanceRenderer>(humanData.Entities[i]);
                 PostUpdateCommands.AddSharedComponent(ZombieSimulatorBootstrap.ZombieLook);
 
+                //PostUpdateCommands.RemoveComponent<Human>(humanData.Entities[i]);
+                //PostUpdateCommands.SetComponent(humanData.Entities[i], default(Zombie));
             }
         }
     }
