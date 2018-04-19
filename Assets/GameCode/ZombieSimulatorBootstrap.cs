@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -6,7 +7,8 @@ using Unity.Transforms2D;
 using UnityEngine;
 
 
-public class ZombieSimulatorBootstrap {
+public class ZombieSimulatorBootstrap
+{
     private static ZombieSettings Settings;
 
     public static MeshInstanceRenderer HumanLook;
@@ -37,26 +39,27 @@ public class ZombieSimulatorBootstrap {
     private static void NewGame()
     {
         var entityManager = World.Active.GetOrCreateManager<EntityManager>();
-
-        for (int i = 0; i < Settings.HumanCount; i++)
-        {
-            CreateHuman(entityManager);
-        }
+        CreateHumans(entityManager);
     }
 
-    private static void CreateHuman(EntityManager entityManager)
+    private static void CreateHumans(EntityManager entityManager)
     {
-        Entity firstHuman = entityManager.CreateEntity(HumanArchetype);
+        NativeArray<Entity> humans = new NativeArray<Entity>(Settings.HumanCount, Allocator.Persistent);
+        entityManager.CreateEntity(HumanArchetype, humans);
 
-        var randomSpawnLocation = ComputeSpawnLocation();
+        foreach (var human in humans)
+        {
+            var randomSpawnLocation = ComputeSpawnLocation();
 
-        // We can tweak a few components to make more sense like this.
-        entityManager.SetComponentData(firstHuman, new Position2D { Value = randomSpawnLocation });
-        entityManager.SetComponentData(firstHuman, new Heading2D { Value = new float2(0.0f, 1.0f) });
-        entityManager.SetComponentData(firstHuman, new MoveSpeed { speed = Settings.HumanSpeed });
+            // We can tweak a few components to make more sense like this.
+            entityManager.SetComponentData(human, new Position2D { Value = randomSpawnLocation });
+            entityManager.SetComponentData(human, new Heading2D { Value = new float2(0.0f, 1.0f) });
+            entityManager.SetComponentData(human, new MoveSpeed { speed = Settings.HumanSpeed });
 
-        // Finally we add a shared component which dictates the rendered look
-        entityManager.AddSharedComponentData(firstHuman, HumanLook);
+            // Finally we add a shared component which dictates the rendered look
+            entityManager.AddSharedComponentData(human, HumanLook);
+        }
+
     }
 
     private static float2 ComputeSpawnLocation()
@@ -83,7 +86,7 @@ public class ZombieSimulatorBootstrap {
         HumanArchetype = entityManager.CreateArchetype(typeof(Human),
                                                         typeof(Heading2D),
                                                         typeof(MoveSpeed),
-                                                        typeof(Position2D), 
+                                                        typeof(Position2D),
                                                         typeof(TransformMatrix));
 
     }
