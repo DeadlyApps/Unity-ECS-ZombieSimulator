@@ -26,7 +26,6 @@ class ZombieNavigationSystem : JobComponentSystem
 
 public struct ZombieNavigationJob : IJobParallelFor
 {
-
     public ZombieData zombieDatum;
 
     [NativeDisableParallelForRestriction]
@@ -74,5 +73,5 @@ public struct ZombieTargetData
 {
     public int Length;
     [ReadOnly] public ComponentDataArray<Position2D> Positions;
-    [ReadOnly] public ComponentDataArray<Human> Human;
+    public ComponentDataArray<Human> Humans;
 }
