@@ -16,7 +16,7 @@ public class ZombieSimulatorBootstrap
     public static MeshInstanceRenderer ZombieLook;
 
     public static EntityArchetype HumanArchetype { get; private set; }
-    public static EntityArchetype ZombieArchetype { get; private set; }
+    //public static EntityArchetype ZombieArchetype { get; private set; }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Initialize()
@@ -43,22 +43,22 @@ public class ZombieSimulatorBootstrap
     {
         var entityManager = World.Active.GetOrCreateManager<EntityManager>();
         CreateHumans(entityManager);
-        CreateZombies(entityManager);
+        //CreateZombies(entityManager);
     }
 
-    private static void CreateZombies(EntityManager entityManager)
-    {
-        NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.ZombieCount, Allocator.Persistent);
-        entityManager.CreateEntity(ZombieArchetype, zombies);
+    //private static void CreateZombies(EntityManager entityManager)
+    //{
+    //    NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.ZombieCount, Allocator.Persistent);
+    //    entityManager.CreateEntity(ZombieArchetype, zombies);
 
-        foreach (var zombie in zombies)
-        {
-            var randomSpawnLocation = ComputeSpawnLocation();
+    //    foreach (var zombie in zombies)
+    //    {
+    //        var randomSpawnLocation = ComputeSpawnLocation();
 
-            // We can tweak a few components to make more sense like this.
-            InitializeZombie(entityManager, zombie, randomSpawnLocation);
-        }
-    }
+    //        // We can tweak a few components to make more sense like this.
+    //        InitializeZombie(entityManager, zombie, randomSpawnLocation);
+    //    }
+    //}
 
     public static void InitializeZombie(EntityManager entityManager, Entity zombie, float2 position)
     {
@@ -72,20 +72,43 @@ public class ZombieSimulatorBootstrap
 
     private static void CreateHumans(EntityManager entityManager)
     {
-        NativeArray<Entity> humans = new NativeArray<Entity>(Settings.HumanCount, Allocator.Persistent);
+        NativeArray<Entity> humans = new NativeArray<Entity>(Settings.HumanCount + Settings.ZombieCount, Allocator.Persistent);
         entityManager.CreateEntity(HumanArchetype, humans);
+
+        var zombieCount = 0;
 
         foreach (var human in humans)
         {
             var randomSpawnLocation = ComputeSpawnLocation();
 
+            if (zombieCount < Settings.ZombieCount)
+            {
+                zombieCount++;
+                entityManager.SetComponentData(human,
+                    new Human
+                    {
+                        IsInfected = 1,
+                        IsZombie = 1
+                    });
+                entityManager.AddSharedComponentData(human, ZombieLook);
+            }
+            else
+            {
+                entityManager.SetComponentData(human,
+                    new Human
+                    {
+                        IsInfected = 0,
+                        IsZombie = 0
+                    });
+                entityManager.AddSharedComponentData(human, HumanLook);
+            }
             // We can tweak a few components to make more sense like this.
             entityManager.SetComponentData(human, new Position2D { Value = randomSpawnLocation });
             entityManager.SetComponentData(human, new Heading2D { Value = new float2(0.0f, 1.0f) });
-            entityManager.SetComponentData(human, new MoveSpeed { speed = Settings.HumanSpeed });
+            entityManager.SetComponentData(human, new MoveSpeed { speed = Settings.HumanSpeed * UnityEngine.Random.value * 2 });
 
             // Finally we add a shared component which dictates the rendered look
-            entityManager.AddSharedComponentData(human, HumanLook);
+            
         }
 
     }
@@ -117,11 +140,11 @@ public class ZombieSimulatorBootstrap
                                                         typeof(Position2D),
                                                         typeof(TransformMatrix));
 
-        ZombieArchetype = entityManager.CreateArchetype(typeof(Zombie),
-                                                        typeof(Heading2D),
-                                                        typeof(MoveSpeed),
-                                                        typeof(Position2D),
-                                                        typeof(TransformMatrix));
+        //ZombieArchetype = entityManager.CreateArchetype(typeof(Zombie),
+        //                                                typeof(Heading2D),
+        //                                                typeof(MoveSpeed),
+        //                                                typeof(Position2D),
+        //                                                typeof(TransformMatrix));
     }
 
     private static MeshInstanceRenderer GetLookFromPrototype(string protoName)

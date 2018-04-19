@@ -5,54 +5,60 @@ using Unity.Mathematics;
 using Unity.Transforms2D;
 using UnityEngine;
 
-[UpdateAfter(typeof(HumanToZombieSystem))]
 class HumanInfectionSystem : JobComponentSystem
 {
     [Inject] private HumanInfectionData humanData;
-    [Inject] private ZombiePositionData zombieTargetData;
 
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         var job = new HumanInfectionJob
         {
-            zombieTargetData = zombieTargetData,
             humanData = humanData,
             infectionDistance = ZombieSettings.Instance.InfectionDistance
         };
 
-        return job.Schedule(humanData.Length, 64, inputDeps);
+        return job.Schedule(inputDeps);
     }
 }
 
 
-struct HumanInfectionJob : IJobParallelFor
+struct HumanInfectionJob : IJob
 {
+    [NativeDisableParallelForRestriction]
     public HumanInfectionData humanData;
 
-    [NativeDisableParallelForRestriction]
-    public ZombiePositionData zombieTargetData;
     public float infectionDistance;
 
-    public void Execute(int index)
+    public void Execute()
     {
-        float2 humanPosition = humanData.Positions[index].Value;
-
-        for (int i = 0; i < zombieTargetData.Length; i++)
+        for (int humanIndex = 0; humanIndex < humanData.Length; humanIndex++)
         {
-            float2 zombiePosition = zombieTargetData.Positions[i].Value;
+            if (humanData.Humans[humanIndex].IsZombie == 1)
+                continue;
 
-            float2 delta = zombiePosition - humanPosition;
-            float distSquared = math.dot(delta, delta);
+            float2 humanPosition = humanData.Positions[humanIndex].Value;
 
-            if (distSquared < infectionDistance)
+            for (int zombieIndex = 0; zombieIndex < humanData.Length; zombieIndex++)
             {
-                var human = humanData.Humans[index];
-                human.IsInfected = 1;
-                humanData.Humans[index] = human;
-            }
+                float2 zombiePosition = humanData.Positions[zombieIndex].Value;
+                if (humanData.Humans[zombieIndex].IsZombie != 1)
+                    continue;
 
+                float2 delta = zombiePosition - humanPosition;
+                float distSquared = math.dot(delta, delta);
+                
+                if (distSquared < infectionDistance)
+                {
+                    var human = humanData.Humans[humanIndex];
+                    human.IsInfected = 1;
+                    humanData.Humans[humanIndex] = human;
+                }
+
+            }
         }
     }
+
+
 }
 
 public struct HumanInfectionData
@@ -60,11 +66,4 @@ public struct HumanInfectionData
     public int Length;
     [ReadOnly] public ComponentDataArray<Position2D> Positions;
     public ComponentDataArray<Human> Humans;
-}
-
-public struct ZombiePositionData
-{
-    public int Length;
-    [ReadOnly] public ComponentDataArray<Position2D> Positions;
-    [ReadOnly] public ComponentDataArray<Zombie> Zombies;
 }

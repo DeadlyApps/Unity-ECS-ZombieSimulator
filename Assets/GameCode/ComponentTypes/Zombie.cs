@@ -1,6 +1,6 @@
-﻿using Unity.Entities;
+﻿//using Unity.Entities;
 
-public struct Zombie : IComponentData
-{
+//public struct Zombie : IComponentData
+//{
 
-}
+//}

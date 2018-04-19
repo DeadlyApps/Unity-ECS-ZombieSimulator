@@ -6,7 +6,6 @@ using Unity.Transforms;
 using Unity.Transforms2D;
 using UnityEngine;
 
-[UpdateAfter(typeof(HumanToZombieSystem))]
 class HumanNavigationSystem : JobComponentSystem
 {
     [Inject] private HumanData humanDatum;
@@ -44,6 +43,8 @@ struct HumanNavigationJob : IJobParallelFor
     public void Execute(int index)
     {
         var human = humanDatum.Human[index];
+        if (human.IsZombie == 1 || human.IsInfected == 1) return;
+
         human.TimeTillNextDirectionChange -= dt;
 
         if (human.TimeTillNextDirectionChange <= 0)
