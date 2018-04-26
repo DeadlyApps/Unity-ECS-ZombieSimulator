@@ -1,44 +1,69 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using Unity.Transforms2D;
 
-class HumanToZombieSystem : ComponentSystem
+class HumanToZombieSystem : JobComponentSystem
 {
-    struct HumansToConvertData
-    {
-        public int Length;
-        public ComponentDataArray<Human> Humans;
-        [ReadOnly] public ComponentDataArray<Position2D> Positions;
-        public EntityArray Entities;
-    }
+    [Inject] private HumanConversionData humanData;
+    [Inject] private ZombieConversionData zombieData;
 
-    [Inject] private HumansToConvertData humanData;
-
-    protected override void OnUpdate()
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        for (int i = 0; i < humanData.Length; i++)
+        var job = new HumanToZombieJob
         {
-            Human human = humanData.Humans[i];
-            
-            if (human.IsInfected == 1)
-            {
-                PostUpdateCommands.DestroyEntity(humanData.Entities[i]);
+            humanData = humanData,
+            zombieData = zombieData
+        };
 
-                PostUpdateCommands.CreateEntity(ZombieSimulatorBootstrap.ZombieArchetype);
-                PostUpdateCommands.SetComponent(new Position2D { Value = humanData.Positions[i].Value });
-                PostUpdateCommands.SetComponent(new Heading2D { Value = new float2(1.0f, 0.0f) });
-                PostUpdateCommands.SetComponent(new MoveSpeed { speed = ZombieSettings.Instance.HumanSpeed });
+        return job.Schedule(humanData.Length, 64, inputDeps);
+    }
+}
 
-                // Finally we add a shared component which dictates the rendered look
-                //PostUpdateCommands.RemoveComponent<MeshInstanceRenderer>(humanData.Entities[i]);
-                PostUpdateCommands.AddSharedComponent(ZombieSimulatorBootstrap.ZombieLook);
+public struct HumanToZombieJob : IJobParallelFor
+{
+    public HumanConversionData humanData;
+    public ZombieConversionData zombieData;
 
-                //PostUpdateCommands.RemoveComponent<Human>(humanData.Entities[i]);
-                //PostUpdateCommands.SetComponent(humanData.Entities[i], default(Zombie));
-            }
+    public void Execute(int index)
+    {
+        var human = humanData.Humans[index];
+        if (human.IsInfected == 1 && human.WasConverted == 0)
+        {
+            var position = humanData.Positions[index];
+            var humanOriginalPosition = position.Value;
+            position.Value = EntityUtil.GetOffScreenLocation();
+            humanData.Positions[index] = position;
+
+            var zombie = zombieData.Zombies[index];
+            zombie.BecomeActive = 1;
+            zombie.BecomeZombiePosition = humanOriginalPosition;
+            zombieData.Zombies[index] = zombie;
+
+            var moveSpeed = humanData.MoveSpeeds[index];
+            moveSpeed.speed = 0;
+            humanData.MoveSpeeds[index] = moveSpeed;
+
+            human.WasConverted = 1;
+            humanData.Humans[index] = human;
         }
     }
+}
+
+public struct HumanConversionData
+{
+    public int Length;
+    public ComponentDataArray<Position2D> Positions;
+    public ComponentDataArray<Human> Humans;
+    public ComponentDataArray<MoveSpeed> MoveSpeeds;
+}
+
+public struct ZombieConversionData
+{
+    public int Length;
+    //[ReadOnly] public ComponentDataArray<Position2D> Positions;
+    public ComponentDataArray<Zombie> Zombies;
 }

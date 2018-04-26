@@ -8,8 +8,8 @@ using UnityEngine;
 [UpdateAfter(typeof(HumanToZombieSystem))]
 class HumanInfectionSystem : JobComponentSystem
 {
-    [Inject] private HumanInfectionData humanData;
     [Inject] private ZombiePositionData zombieTargetData;
+    [Inject] private HumanInfectionData humanData;
 
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
@@ -20,37 +20,39 @@ class HumanInfectionSystem : JobComponentSystem
             infectionDistance = ZombieSettings.Instance.InfectionDistance
         };
 
-        return job.Schedule(humanData.Length, 64, inputDeps);
+        return job.Schedule(humanData.Length, humanData.Length, inputDeps);
     }
 }
 
 
 struct HumanInfectionJob : IJobParallelFor
 {
-    public HumanInfectionData humanData;
+    public ZombiePositionData zombieTargetData;
 
     [NativeDisableParallelForRestriction]
-    public ZombiePositionData zombieTargetData;
+    public HumanInfectionData humanData;
+
     public float infectionDistance;
 
     public void Execute(int index)
     {
-        float2 humanPosition = humanData.Positions[index].Value;
+        var zombie = zombieTargetData.Zombies[index];
+        if (zombie.HumanTargetIndex == -1 || zombie.BecomeActive != 1)
+            return;
 
-        for (int i = 0; i < zombieTargetData.Length; i++)
+        var human = humanData.Humans[zombie.HumanTargetIndex];
+        if (human.IsInfected == 1)
+            return;
+
+        float2 humanPosition = humanData.Positions[zombie.HumanTargetIndex].Value;
+        float2 zombiePosition = zombieTargetData.Positions[index].Value;
+
+        float distSquared = math.distance(zombiePosition, humanPosition);
+
+        if (distSquared < infectionDistance)
         {
-            float2 zombiePosition = zombieTargetData.Positions[i].Value;
-
-            float2 delta = zombiePosition - humanPosition;
-            float distSquared = math.dot(delta, delta);
-
-            if (distSquared < infectionDistance)
-            {
-                var human = humanData.Humans[index];
-                human.IsInfected = 1;
-                humanData.Humans[index] = human;
-            }
-
+            human.IsInfected = 1;
+            humanData.Humans[zombie.HumanTargetIndex] = human;
         }
     }
 }

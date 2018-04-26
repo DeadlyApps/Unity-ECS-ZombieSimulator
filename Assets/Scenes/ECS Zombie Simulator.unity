@@ -214,8 +214,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HumanSpeed: 3
-  HumanCount: 10000
-  ZombieCount: 100
+  HumanCount: 3000
+  ZombieCount: 5
   InfectionDistance: 1
   Playfield:
     serializedVersion: 2

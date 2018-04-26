@@ -44,6 +44,10 @@ struct HumanNavigationJob : IJobParallelFor
     public void Execute(int index)
     {
         var human = humanDatum.Human[index];
+
+        if (human.IsInfected == 1)
+            return;
+
         human.TimeTillNextDirectionChange -= dt;
 
         if (human.TimeTillNextDirectionChange <= 0)

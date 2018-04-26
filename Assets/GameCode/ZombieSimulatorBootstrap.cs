@@ -48,23 +48,24 @@ public class ZombieSimulatorBootstrap
 
     private static void CreateZombies(EntityManager entityManager)
     {
-        NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.ZombieCount, Allocator.Persistent);
+        NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.HumanCount, Allocator.Persistent);
         entityManager.CreateEntity(ZombieArchetype, zombies);
 
-        foreach (var zombie in zombies)
+        for (int i = 0; i < Settings.HumanCount; i++)
         {
-            var randomSpawnLocation = ComputeSpawnLocation();
+            var randomSpawnLocation = EntityUtil.GetOffScreenLocation();
 
             // We can tweak a few components to make more sense like this.
-            InitializeZombie(entityManager, zombie, randomSpawnLocation);
+            InitializeZombie(entityManager, zombies[i], randomSpawnLocation);
         }
     }
+
 
     public static void InitializeZombie(EntityManager entityManager, Entity zombie, float2 position)
     {
         entityManager.SetComponentData(zombie, new Position2D { Value = position });
         entityManager.SetComponentData(zombie, new Heading2D { Value = new float2(1.0f, 0.0f) });
-        entityManager.SetComponentData(zombie, new MoveSpeed { speed = Settings.HumanSpeed });
+        entityManager.SetComponentData(zombie, new MoveSpeed { speed = 0 });
 
         // Finally we add a shared component which dictates the rendered look
         entityManager.AddSharedComponentData(zombie, ZombieLook);
@@ -72,17 +73,24 @@ public class ZombieSimulatorBootstrap
 
     private static void CreateHumans(EntityManager entityManager)
     {
-        NativeArray<Entity> humans = new NativeArray<Entity>(Settings.HumanCount, Allocator.Persistent);
+        int length = Settings.HumanCount;// + Settings.ZombieCount;
+        NativeArray<Entity> humans = new NativeArray<Entity>(length, Allocator.Persistent);
         entityManager.CreateEntity(HumanArchetype, humans);
 
-        foreach (var human in humans)
+        for (int i = 0; i < length; i++)
         {
+            var human = humans[i];
             var randomSpawnLocation = ComputeSpawnLocation();
 
             // We can tweak a few components to make more sense like this.
             entityManager.SetComponentData(human, new Position2D { Value = randomSpawnLocation });
             entityManager.SetComponentData(human, new Heading2D { Value = new float2(0.0f, 1.0f) });
             entityManager.SetComponentData(human, new MoveSpeed { speed = Settings.HumanSpeed });
+
+            if (i < Settings.ZombieCount)
+            {
+                entityManager.SetComponentData(human, new Human { IsInfected = 1 });
+            }
 
             // Finally we add a shared component which dictates the rendered look
             entityManager.AddSharedComponentData(human, HumanLook);

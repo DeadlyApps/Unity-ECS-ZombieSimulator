@@ -16,8 +16,8 @@ class ZombieNavigationSystem : JobComponentSystem
     {
         var job = new ZombieNavigationJob
         {
-            zombieDatum = zombieDatum,
-            zombieTargetDatum = zombieTargetDatume,
+            zombieTargetingData = zombieDatum,
+            humanTargetingData = zombieTargetDatume,
             dt = Time.deltaTime
         };
 
@@ -27,38 +27,37 @@ class ZombieNavigationSystem : JobComponentSystem
 
 public struct ZombieNavigationJob : IJobParallelFor
 {
-    public ZombieData zombieDatum;
+    public ZombieData zombieTargetingData;
 
     [NativeDisableParallelForRestriction]
-    public ZombieTargetData zombieTargetDatum;
+    public ZombieTargetData humanTargetingData;
 
     public float dt;
 
     public void Execute(int index)
     {
-        var zombie = zombieDatum.Zombie[index];
-        float2 zombiePosition = zombieDatum.Position[index].Value;
-        int selectedHumanIndex;
-        float2 newHeading = new float2(0, 1);
-
-        float nearestDistance = float.MaxValue; 
-        for (int i = 0; i < zombieTargetDatum.Length; i++)
+        var zombie = zombieTargetingData.Zombie[index];
+        if (zombie.BecomeActive != 1)
+            return;
+        if (zombie.HumanTargetIndex == -1)
         {
-            float2 humanPosition = zombieTargetDatum.Positions[i].Value;
-            float2 delta = humanPosition - zombiePosition;
-            float distSquared = math.dot(delta, delta);
-
-            if (distSquared < nearestDistance)
-            {
-                nearestDistance = distSquared;
-                selectedHumanIndex = i;
-                newHeading = math.normalize(delta);
-            }
+            var moveSpeed = zombieTargetingData.MoveSpeeds[index];
+            moveSpeed.speed = 0;
+            zombieTargetingData.MoveSpeeds[index] = moveSpeed;
+            return;
         }
 
-        var heading = zombieDatum.Heading[index];
+        float2 zombiePosition = zombieTargetingData.Position[index].Value;
+        float2 newHeading = new float2(0, 1);
+        float2 humanPosition = humanTargetingData.Positions[zombie.HumanTargetIndex].Value;
+        float2 delta = humanPosition - zombiePosition;
+
+        newHeading = math.normalize(delta);
+
+        var heading = zombieTargetingData.Heading[index];
         heading.Value = newHeading;
-        zombieDatum.Heading[index] = heading;
+        zombieTargetingData.Heading[index] = heading;
+
     }
 }
 
@@ -67,6 +66,7 @@ public struct ZombieData
     public int Length;
     [ReadOnly] public ComponentDataArray<Position2D> Position;
     public ComponentDataArray<Heading2D> Heading;
+    public ComponentDataArray<MoveSpeed> MoveSpeeds;
     [ReadOnly] public ComponentDataArray<Zombie> Zombie;
 }
 
@@ -74,5 +74,5 @@ public struct ZombieTargetData
 {
     public int Length;
     [ReadOnly] public ComponentDataArray<Position2D> Positions;
-    public ComponentDataArray<Human> Humans;
+    [ReadOnly] public ComponentDataArray<Human> Humans;
 }
