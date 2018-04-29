@@ -48,7 +48,7 @@ public class ZombieSimulatorBootstrap
 
     private static void CreateZombies(EntityManager entityManager)
     {
-        NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.HumanCount, Allocator.Persistent);
+        NativeArray<Entity> zombies = new NativeArray<Entity>(Settings.HumanCount, Allocator.Temp);
         entityManager.CreateEntity(ZombieArchetype, zombies);
 
         for (int i = 0; i < Settings.HumanCount; i++)
@@ -58,6 +58,8 @@ public class ZombieSimulatorBootstrap
             // We can tweak a few components to make more sense like this.
             InitializeZombie(entityManager, zombies[i], randomSpawnLocation);
         }
+
+        zombies.Dispose();
     }
 
 
@@ -74,7 +76,7 @@ public class ZombieSimulatorBootstrap
     private static void CreateHumans(EntityManager entityManager)
     {
         int length = Settings.HumanCount;// + Settings.ZombieCount;
-        NativeArray<Entity> humans = new NativeArray<Entity>(length, Allocator.Persistent);
+        NativeArray<Entity> humans = new NativeArray<Entity>(length, Allocator.Temp);
         entityManager.CreateEntity(HumanArchetype, humans);
 
         for (int i = 0; i < length; i++)
@@ -96,6 +98,7 @@ public class ZombieSimulatorBootstrap
             entityManager.AddSharedComponentData(human, HumanLook);
         }
 
+        humans.Dispose();
     }
 
     private static float2 ComputeSpawnLocation()
