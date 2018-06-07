@@ -24,7 +24,7 @@ class ZombieActivationSystem : JobComponentSystem
         return job.Schedule(zombieData.Length, 64, inputDeps);
     }
 }
-
+[ComputeJobOptimization]
 public struct ZombieActivationJob : IJobParallelFor
 {
     public ZombieActivationData zombieData;

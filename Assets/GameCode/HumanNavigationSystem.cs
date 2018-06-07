@@ -33,7 +33,7 @@ class HumanNavigationSystem : JobComponentSystem
         return humanNavigationJob.Schedule(humanDatum.Length, 64, inputDeps);
     }
 }
-
+[ComputeJobOptimization]
 struct HumanNavigationJob : IJobParallelFor
 {
     public HumanData humanDatum;

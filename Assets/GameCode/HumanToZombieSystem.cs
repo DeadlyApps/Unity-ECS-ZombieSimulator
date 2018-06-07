@@ -22,7 +22,7 @@ class HumanToZombieSystem : JobComponentSystem
         return job.Schedule(humanData.Length, 64, inputDeps);
     }
 }
-
+[ComputeJobOptimization]
 public struct HumanToZombieJob : IJobParallelFor
 {
     public HumanConversionData humanData;

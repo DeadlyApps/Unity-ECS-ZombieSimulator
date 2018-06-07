@@ -24,7 +24,7 @@ class ZombieNavigationSystem : JobComponentSystem
         return job.Schedule(zombieDatum.Length, 64, inputDeps);
     }
 }
-
+[ComputeJobOptimization]
 public struct ZombieNavigationJob : IJobParallelFor
 {
     public ZombieData zombieTargetingData;

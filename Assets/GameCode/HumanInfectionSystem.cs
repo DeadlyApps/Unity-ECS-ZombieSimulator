@@ -24,7 +24,7 @@ class HumanInfectionSystem : JobComponentSystem
     }
 }
 
-
+[ComputeJobOptimization]
 struct HumanInfectionJob : IJobParallelFor
 {
     public ZombiePositionData zombieTargetData;
